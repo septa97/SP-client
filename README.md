@@ -9,7 +9,7 @@ Coursera's MOOCs Sentiment Analysis and Visualization: Polarity Identification f
 ## install dependencies
 npm install
 
-## serve with hot reload at localhost:5080
+## serve with hot reload at localhost:8080 or localhost:8081 (if rethinkdb server is active)
 npm run dev
 
 # build for production with minification
