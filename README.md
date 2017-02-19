@@ -1,13 +1,19 @@
 Coursera's MOOCs Sentiment Analysis and Visualization: Polarity Identification from Course Reviews (client)
 ===========================================================================================================
 
-## Prerequisites
+## prerequisites
 * npm
 * node.js (version 6.0 or higher)
 
-## Installation
-* `npm install`
+``` bash
+## install dependencies
+npm install
 
-## Running the application
-* `npm run serve`
-* Go to localhost:8080
+## serve with hot reload at localhost:5080
+npm run dev
+
+# build for production with minification
+npm run build
+```
+
+For detailed explanation on how things work, consult the [docs for vue-loader](http://vuejs.github.io/vue-loader).
