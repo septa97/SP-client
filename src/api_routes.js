@@ -1,7 +1,10 @@
-const courses_url = 'https://api.coursera.org/api/courses.v1'
-const partners_url = 'https://api.coursera.org/api/partners.v1'
-const instructors_url = 'https://api.coursera.org/api/instructors.v1'
+const rethinkdb_base_URL = 'http://localhost:5000/api/v1/rethinkdb'
+const coursera_base_URL = 'http://localhost:5000/api/v1/coursera'
 
 export default {
-    get_all_partners_and_location: `${partners_url}?fields=location`
+    coursera: {
+        GET: {
+            partners_location: coursera_base_URL + '/partners/location'
+        }
+    }
 }
