@@ -12,8 +12,8 @@ const router = new VueRouter({
 const app = new Vue({
     el: '#app',
     data: {
-        backend_url: 'localhost:5000',
-        frontend_url: 'localhost:8080'
+        backendURL: 'localhost:5000',
+        frontendURL: 'localhost:8080'
     },
     render: h => h(AppView),
     router
