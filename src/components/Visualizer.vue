@@ -1,13 +1,21 @@
 <template>
     <div id="visualizer">
         <div class="input-field col s12">
-            <select>
-                <option value="" disabled selected>Choose your Supervised Classifier</option>
-                <option value="LR">Logistic Regression</option>
-                <option value="SVM">Support Vector Machine</option>
-                <option value="MLP">Multi-layer Perceptron (Artifial Neural Network)</option>
-            </select>
-            <label>Supervised Classifier</label>
+            <h5>Supervised classifier</h5>
+            <form>
+                <p>
+                    <input id="LR" type="radio" v-model="classifier" value="LR">
+                    <label for="LR">Logistic Regression</label>
+                <p>
+                <p>
+                    <input id="SVM" type="radio" v-model="classifier" value="SVM">
+                    <label for="SVM">Support Vector Machine</label>
+                <p>
+                <p>
+                    <input id="MLP" type="radio" v-model="classifier" value="MLP">
+                    <label for="MLP">Multi-layer Perceptron (Artifial Neural Network)</label>
+                <p>
+            </form>
         </div>
 
         <div class="row">
@@ -31,7 +39,9 @@
 
     export default {
         data() {
-            return {}
+            return {
+                classifier: 'LR'
+            }
         },
         mounted() {
             $(document).ready(function() {
@@ -54,7 +64,7 @@
                 const config = {
                     method: 'get',
                     baseURL: apiRoutes.visualizerBaseURL,
-                    url: '/LR-visualization-info'
+                    url: `/visualization-info/${this.classifier}`
                 }
 
                 axios(config)

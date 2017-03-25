@@ -11,13 +11,21 @@
         </div>
 
         <div class="input-field col s12">
-            <select v-model="classifier">
-                <option v-for="option in options" :value="option.value">
-                    {{ option.text }}
-                </option>
-            </select>
-            <label>Supervised Classifier</label>
-            <span>Classifier: {{ classifier }}</span>
+            <h5>Supervised classifier</h5>
+            <form>
+                <p>
+                    <input id="LR" type="radio" v-model="classifier" value="LR">
+                    <label for="LR">Logistic Regression</label>
+                <p>
+                <p>
+                    <input id="SVM" type="radio" v-model="classifier" value="SVM">
+                    <label for="SVM">Support Vector Machine</label>
+                <p>
+                <p>
+                    <input id="MLP" type="radio" v-model="classifier" value="MLP">
+                    <label for="MLP">Multi-layer Perceptron (Artifial Neural Network)</label>
+                <p>
+            </form>
         </div>
 
         <div class="row">
@@ -25,9 +33,14 @@
                 <input id="data-size" type="text" v-model.trim.number="dataSize">
                 <label for="data-size">Data Size</label>
             </div>
-            <div class="input-field col s6">
-                <input id="test-data-size" type="text" v-model.trim.number="testDataSize">
-                <label for="test-data-size">Test Data Size [0.1 - 0.9]</label>
+        </div>
+
+        <div class="row">
+            <h6>Test Data Size: {{ testDataSize }}</h6>
+            <div class="input-field col s12">
+                <p id="test-data-size" class="range-field">
+                    <input type="range" min="10" max="90" v-model.trim.number="testDataSize" >
+                </p>
             </div>
         </div>
 
@@ -55,13 +68,11 @@
         data() {
             return {
                 dataSize: '',
-                testDataSize: '',
+                testDataSize: '20',
                 message: '',
                 classifier: 'LR',
                 training: false,
                 numOfTrainings: 0,
-                // trainingScore: undefined,
-                // testScore: undefined,
                 options: [
                     { text: 'Logistic Regression', value: 'LR' },
                     { text: 'Support Vector Machine', value: 'SVM' },
@@ -79,22 +90,13 @@
             train() {
                 this.training = true
 
-                let url
-                switch (this.classifier) {
-                    case 'LR':  url = '/logistic-regression'
-                                break
-                    case 'SVM': url = '/support-vector-machine'
-                                break
-                    case 'MLP': url = '/multi-layer-perceptron'
-                                break
-                }
-
                 const config = {
                     method: 'post',
                     baseURL: apiRoutes.classifierBaseURL,
-                    url,
+                    url: '/train',
                     data: {
-                        dataSize: this.dataSize,
+                        classifier: this.classifier,
+                        dataSize: this.dataSize/100,
                         testDataSize: this.testDataSize
                     },
                     headers: {
