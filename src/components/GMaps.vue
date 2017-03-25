@@ -1,53 +1,118 @@
 <template>
     <div id="map">
+
     </div>
 </template>
 
 <script>
-    import api_routes from './../api_routes'
+    import apiRoutes from './../apiRoutes'
     import axios from 'axios'
-
-    let map_options = {
-        center: {
-            lat: -34.397,
-            lng: 150.644
-        },
-        zoom: 2
-    }
 
     export default {
         data() {
-            return {}
+            return {
+                loadingCourses: false,
+                infoWindow: '',
+                partnerCourses: []
+            }
         },
         mounted() {
+            $(document).ready(function(){
+                $('.modal').modal();
+            })
             this.initMap()
-            this.get_all_partners_and_location()
+            this.getAllPartnersAndLocation()
         },
         methods: {
             initMap() {
-                this.map = new google.maps.Map(document.getElementById('map'), map_options)
+                let mapOptions = {
+                    center: {
+                        lat: -34.397,
+                        lng: 150.644
+                    },
+                    zoom: 2,
+                    minZoom: 2
+                }
+
+                this.map = new google.maps.Map(document.getElementById('map'), mapOptions)
             },
-            get_all_partners_and_location() {
-                axios.get(api_routes.coursera.GET.partners_location)
+            getAllPartnersAndLocation() {
+                const config = {
+                    method: 'get',
+                    baseURL: apiRoutes.rethinkdbBaseURL,
+                    url: '/partners/location'
+                }
+
+                axios(config)
                     .then(response => {
-                        response.data.elements.forEach(e => {
+                        let markers = response.data.elements.map((e, i) => {
                             if (e.location.latitude && e.location.longitude) {
-                                new google.maps.Marker({
+                                let marker = new google.maps.Marker({
                                     map: this.map,
                                     title: e.name,
                                     position: {
                                         lat: e.location.latitude,
                                         lng: e.location.longitude
                                     },
-                                    animation: google.maps.Animation.DROP
+                                    animation: google.maps.Animation.DROP,
+                                    partnerId: e.id
                                 })
+
+                                // Add click listener to the markers
+                                marker.addListener('click', () => {
+                                    this.loadingCourses = true
+                                    const template =
+                                    `
+                                    <div id="info-window" style="width: 400px; height: 250px;">
+                                        <h5>Courses</h5>
+                                    </div>
+                                    `
+
+                                    let infoWindow = new google.maps.InfoWindow({
+                                        content: template
+                                    })
+
+                                    infoWindow.open(this.map, marker)
+                                    this.getAllPartnerCourses(marker.partnerId)
+                                })
+
+                                return marker
                             }
                         })
+
+                        let markerCluster = new MarkerClusterer(this.map, markers,
+                            {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'})
                     })
                     .catch(error => {
-                        console.log(error)
+                        throw new Error(error)
                     })
-            }
+            },
+            getAllPartnerCourses(partnerId) {
+                const config = {
+                    method: 'get',
+                    baseURL: apiRoutes.courseraBaseURL,
+                    url: `/partner/${partnerId}/courses`
+                }
+
+                axios(config)
+                    .then(response => {
+                        this.partnerCourses = response.data.courses
+
+                        let template = '<ul class="collection">'
+
+                        this.partnerCourses.forEach(e => {
+                            template += `<a href="#/course/${e.id}" id="e.id" class="collection-item">${e.name}</a>`
+                        })
+
+                        template += '</ul>'
+
+                        $('#info-window').append(template)
+                        this.loadingCourses = false
+                    })
+                    .catch(error => {
+                        throw new Error(error)
+                    })
+            },
         }
     }
 </script>
