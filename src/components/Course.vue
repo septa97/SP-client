@@ -1,17 +1,16 @@
 <template>
     <div id="course">
+        <h5>Overall</h5>
         <div id="overall">
-            <h5>Overall</h5>
         </div>
+        <h5>Positive</h5>
         <div id="positive">
-            <h5>Positive</h5>
         </div>
+        <h5>Negative</h5>
         <div id="negative">
-            <h5>Negative</h5>
         </div>
+        <h5>Neutral</h5>
         <div id="neutral">
-            <h5>Neutral</h5>
-        </div>
     </div>
 </template>
 
@@ -27,229 +26,102 @@
         data() {
             return {
                 courseId: this.$route.params.id,
-                words: [],
-                width: 600,
-                height: 600
+                words: {
+                    overall: [],
+                    positive: [],
+                    negative: [],
+                    neutral: []
+                },
+                wordMapping: {
+                    overall: {},
+                    positive: {},
+                    negative: {},
+                    neutral: {}
+                },
+                overall: true,
+                positive: true,
+                negative: true,
+                neutral: true
             }
         },
         mounted() {
-            this.getAllCourseReviewPreprocessedWordsOverall()
-            this.getAllCourseReviewPreprocessedWordsPositive()
-            this.getAllCourseReviewPreprocessedWordsNegative()
-            this.getAllCourseReviewPreprocessedWordsNeutral()
+            this.getAllCourseReviewPreprocessedWords()
         },
         methods: {
-            getAllCourseReviewPreprocessedWordsOverall() {
-                const config = {
-                    method: 'get',
-                    baseURL: apiRoutes.rethinkdbBaseURL,
-                    url: `/course/${this.courseId}/reviews/preprocessed-words/overall`
+            drawWordCloud(type) {
+                let fill = d3.scale.category20()
+                let layout = d3Cloud()
+                                .size([600, 400])
+                                .words(_.map(this.wordMapping[type], (v, k) => {
+                                    return {
+                                        text: k,
+                                        size: 10 + (10 * v)
+                                    }
+                                }))
+                                .padding(5)
+                                .rotate(() => _.random(-60, 60))
+                                .font('Impact')
+                                .fontSize(d => d.size)
+                                .on('end', draw)
+
+                layout.start()
+
+                function draw(words) {
+                    let [width, height] = layout.size()
+
+                    d3.select(`#${type}`)
+                        .append('svg')
+                            .attr('width', width)
+                            .attr('height', height)
+                        .append('g')
+                            .attr('transform', `translate(${width/2},${height/2})`)
+                        .selectAll('text')
+                            .data(words)
+                        .enter().append('text')
+                            .style('font-size', d => d.size + 'px')
+                            .style('font-family', 'Impact')
+                            .style('fill', (d, i) => fill(i))
+                            .attr('text-anchor', 'middle')
+                            .attr('transform', d => `translate(${[d.x, d.y]})rotate(${d.rotate})`)
+                            .text(d => d.text)
+
+                    this[type] = false
                 }
-
-                axios(config)
-                    .then(response => {
-                        this.words = response.data.words
-
-                        let wordMapping = _.countBy(this.words, _.identity)
-                        let fill = d3.scale.category20()
-                        let layout = d3Cloud()
-                                        .size([900, 600])
-                                        .words(_.map(wordMapping, (v, k) => {
-                                            return {
-                                                text: k,
-                                                size: 10 + (10 * v)
-                                            }
-                                        }))
-                                        .padding(5)
-                                        .rotate(() => ~~(Math.random() * 2) * 90)
-                                        .font('Impact')
-                                        .fontSize(d => d.size)
-                                        .on('end', draw)
-
-                        layout.start()
-
-                        function draw(words) {
-                            let [width, height] = layout.size()
-
-                            d3.select('#overall')
-                                .append('svg')
-                                    .attr('width', width)
-                                    .attr('height', height)
-                                .append('g')
-                                    .attr('transform', `translate(${width/2},${height/2})`)
-                                .selectAll('text')
-                                    .data(words)
-                                .enter().append('text')
-                                    .style('font-size', d => d.size + 'px')
-                                    .style('font-family', 'Impact')
-                                    .style('fill', (d, i) => fill(i))
-                                    .attr('text-anchor', 'middle')
-                                    .attr('transform', d => `translate(${[d.x, d.y]})rotate(${d.rotate})`)
-                                    .text(d => d.text)
-                        }
-                    })
-                    .catch(error => {
-                        throw new Error(error)
-                    })
             },
-            getAllCourseReviewPreprocessedWordsPositive() {
-                const config = {
-                    method: 'get',
-                    baseURL: apiRoutes.rethinkdbBaseURL,
-                    url: `/course/${this.courseId}/reviews/preprocessed-words/positive`
-                }
+            getAllCourseReviewPreprocessedWords() {
+                let types = ['overall', 'positive', 'negative', 'neutral']
 
-                axios(config)
-                    .then(response => {
-                        this.words = response.data.words
+                _.each(types, type => {
+                    const config = {
+                        method: 'get',
+                        baseURL: apiRoutes.rethinkdbBaseURL,
+                        url: `/course/${this.courseId}/reviews/preprocessed-words/${type}`
+                    }
 
-                        let wordMapping = _.countBy(this.words, _.identity)
-                        let fill = d3.scale.category20()
-                        let layout = d3Cloud()
-                                        .size([900, 600])
-                                        .words(_.map(wordMapping, (v, k) => {
-                                            return {
-                                                text: k,
-                                                size: 10 + (10 * v)
-                                            }
-                                        }))
-                                        .padding(5)
-                                        .rotate(() => ~~(Math.random() * 2) * 90)
-                                        .font('Impact')
-                                        .fontSize(d => d.size)
-                                        .on('end', draw)
+                    axios(config)
+                        .then(response => {
+                            this.words[type] = response.data.words
 
-                        layout.start()
+                            if (!this.words[type].length) {
+                                let template =
+                                `
+                                <p>
+                                There are no reviews for this course. :(
+                                </p>
+                                `
 
-                        function draw(words) {
-                            let [width, height] = layout.size()
+                                $('#${type}').append(template)
 
-                            d3.select('#positive')
-                                .append('svg')
-                                    .attr('width', width)
-                                    .attr('height', height)
-                                .append('g')
-                                    .attr('transform', `translate(${width/2},${height/2})`)
-                                .selectAll('text')
-                                    .data(words)
-                                .enter().append('text')
-                                    .style('font-size', d => d.size + 'px')
-                                    .style('font-family', 'Impact')
-                                    .style('fill', (d, i) => fill(i))
-                                    .attr('text-anchor', 'middle')
-                                    .attr('transform', d => `translate(${[d.x, d.y]})rotate(${d.rotate})`)
-                                    .text(d => d.text)
-                        }
-                    })
-                    .catch(error => {
-                        throw new Error(error)
-                    })
-            },
-            getAllCourseReviewPreprocessedWordsNegative() {
-                const config = {
-                    method: 'get',
-                    baseURL: apiRoutes.rethinkdbBaseURL,
-                    url: `/course/${this.courseId}/reviews/preprocessed-words/negative`
-                }
+                                return
+                            }
 
-                axios(config)
-                    .then(response => {
-                        this.words = response.data.words
-
-                        let wordMapping = _.countBy(this.words, _.identity)
-                        let fill = d3.scale.category20()
-                        let layout = d3Cloud()
-                                        .size([900, 600])
-                                        .words(_.map(wordMapping, (v, k) => {
-                                            return {
-                                                text: k,
-                                                size: 10 + (10 * v)
-                                            }
-                                        }))
-                                        .padding(5)
-                                        .rotate(() => ~~(Math.random() * 2) * 90)
-                                        .font('Impact')
-                                        .fontSize(d => d.size)
-                                        .on('end', draw)
-
-                        layout.start()
-
-                        function draw(words) {
-                            let [width, height] = layout.size()
-
-                            d3.select('#negative')
-                                .append('svg')
-                                    .attr('width', width)
-                                    .attr('height', height)
-                                .append('g')
-                                    .attr('transform', `translate(${width/2},${height/2})`)
-                                .selectAll('text')
-                                    .data(words)
-                                .enter().append('text')
-                                    .style('font-size', d => d.size + 'px')
-                                    .style('font-family', 'Impact')
-                                    .style('fill', (d, i) => fill(i))
-                                    .attr('text-anchor', 'middle')
-                                    .attr('transform', d => `translate(${[d.x, d.y]})rotate(${d.rotate})`)
-                                    .text(d => d.text)
-                        }
-                    })
-                    .catch(error => {
-                        throw new Error(error)
-                    })
-            },
-            getAllCourseReviewPreprocessedWordsNeutral() {
-                const config = {
-                    method: 'get',
-                    baseURL: apiRoutes.rethinkdbBaseURL,
-                    url: `/course/${this.courseId}/reviews/preprocessed-words/neutral`
-                }
-
-                axios(config)
-                    .then(response => {
-                        this.words = response.data.words
-
-                        let wordMapping = _.countBy(this.words, _.identity)
-                        let fill = d3.scale.category20()
-                        let layout = d3Cloud()
-                                        .size([900, 600])
-                                        .words(_.map(wordMapping, (v, k) => {
-                                            return {
-                                                text: k,
-                                                size: 10 + (10 * v)
-                                            }
-                                        }))
-                                        .padding(5)
-                                        .rotate(() => ~~(Math.random() * 2) * 90)
-                                        .font('Impact')
-                                        .fontSize(d => d.size)
-                                        .on('end', draw)
-
-                        layout.start()
-
-                        function draw(words) {
-                            let [width, height] = layout.size()
-
-                            d3.select('#neutral')
-                                .append('svg')
-                                    .attr('width', width)
-                                    .attr('height', height)
-                                .append('g')
-                                    .attr('transform', `translate(${width/2},${height/2})`)
-                                .selectAll('text')
-                                    .data(words)
-                                .enter().append('text')
-                                    .style('font-size', d => d.size + 'px')
-                                    .style('font-family', 'Impact')
-                                    .style('fill', (d, i) => fill(i))
-                                    .attr('text-anchor', 'middle')
-                                    .attr('transform', d => `translate(${[d.x, d.y]})rotate(${d.rotate})`)
-                                    .text(d => d.text)
-                        }
-                    })
-                    .catch(error => {
-                        throw new Error(error)
-                    })
+                            this.wordMapping[type] = _.countBy(this.words[type], _.identity)
+                            this.drawWordCloud(type)
+                        })
+                        .catch(error => {
+                            throw new Error(error)
+                        })
+                })
             }
         }
     }
