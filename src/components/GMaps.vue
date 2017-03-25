@@ -64,7 +64,8 @@
                                     const template =
                                     `
                                     <div id="info-window" style="width: 400px; height: 250px;">
-                                        <h5>Courses</h5>
+                                        <h5>${e.name}</h5>
+                                        <h6>Courses</h6>
                                     </div>
                                     `
 
