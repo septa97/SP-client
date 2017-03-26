@@ -1,32 +1,18 @@
 <template>
     <div id="visualizer">
-        <div class="input-field col s12">
-            <h5>Supervised classifier</h5>
-            <form>
-                <p>
-                    <input id="LR" type="radio" v-model="classifier" value="LR">
-                    <label for="LR">Logistic Regression</label>
-                <p>
-                <p>
-                    <input id="SVM" type="radio" v-model="classifier" value="SVM">
-                    <label for="SVM">Support Vector Machine</label>
-                <p>
-                <p>
-                    <input id="MLP" type="radio" v-model="classifier" value="MLP">
-                    <label for="MLP">Multi-layer Perceptron (Artifial Neural Network)</label>
-                <p>
-            </form>
-        </div>
-
-        <div class="row">
-            <div class="input-field col s6">
-                <button class="btn waves-effect waves-light" type="submit" @click="getAllLRInformations">
-                    Visualize
-                </button>
-            </div>
-        </div>
-
         <div id="charts">
+            <h5 v-show="PCA2D">Principal Component Analysis (2D)</h5>
+            <div id="PCA-2D">
+            </div>
+            <h5 v-show="PCA3D">Principal Component Analysis (3D)</h5>
+            <div id="PCA-3D">
+            </div>
+            <h5 v-show="tSNE2D">t-distributed Stochastic Neighbor Embedding (2D)</h5>
+            <div id="tSNE-2D">
+            </div>
+            <h5 v-show="tSNE3D">t-distributed Stochastic Neighbor Embedding (3D)</h5>
+            <div id="tSNE-3D">
+            </div>
         </div>
     </div>
 </template>
@@ -36,95 +22,80 @@
 
     import apiRoutes from './../apiRoutes'
     import axios from 'axios'
+    import _ from 'lodash'
 
     export default {
         data() {
             return {
-                classifier: 'LR'
+                PCA2D: false,
+                PCA3D: false,
+                tSNE2D: false,
+                tSNE3D: false
             }
         },
         mounted() {
-            $(document).ready(function() {
-                $('select').material_select()
-            })
+            this.getAllInformations()
         },
         methods: {
-            createDivTemplate(trainingScore, testScore) {
-                const template =
-                `<div>
-                    <p>Training Score: ${trainingScore}</p>
-                    <p>Test Score: ${testScore}</p>
-                </div>`
+            getAllInformations() {
+                const urls = ['/PCA/2', '/PCA/3', '/tSNE/2', '/tSNE/3']
 
-                $('#charts').append(template)
-            },
-            getAllLRInformations() {
-                $('#charts').empty()
+                _.forEach(urls, url => {
+                    const config = {
+                        method: 'get',
+                        baseURL: apiRoutes.dimensionalityReductionBaseURL,
+                        url
+                    }
 
-                const config = {
-                    method: 'get',
-                    baseURL: apiRoutes.visualizerBaseURL,
-                    url: `/visualization-info/${this.classifier}`
-                }
+                    axios(config)
+                        .then(response => {
+                            const types = ['positive', 'negative', 'neutral']
+                            let data = []
 
-                axios(config)
-                    .then(response => {
-                        response.data.informations.forEach(e => {
-                            $('#charts').append(e.div)
-                            eval(e.script)
-                            createDivTemplate(e.trainingScore, e.testScore)
+                            _.forEach(types, type => {
+                                let trace = {}
+
+                                trace.x = response.data[type].X
+                                trace.y = response.data[type].y
+                                if (url[url.length-1] === '3') {
+                                    trace.z = response.data[type].z
+                                    trace.type = 'scatter3d'
+                                }
+                                else {
+                                    trace.type = 'scatter'
+                                }
+
+                                trace.mode = 'markers'
+                                trace.name = type
+
+                                data.push(trace)
+                            })
+
+                            let div
+                            switch (url) {
+                                case '/PCA/2':  div = 'PCA-2D'
+                                                this.PCA2D = true
+                                                break
+                                case '/PCA/3':  div = 'PCA-3D'
+                                                this.PCA3D = true
+                                                break
+                                case '/tSNE/2': div = 'tSNE-2D'
+                                                this.tSNE2D = true
+                                                break
+                                case '/tSNE/3': div = 'tSNE-3D'
+                                                this.tSNE3D = true
+                                                break
+                            }
+
+                            Plotly.newPlot(div, data)
                         })
-                    })
-                    .catch(error => {
-                        throw new Error(error)
-                    })
+                        .catch(error => {
+                            throw new Error(error)
+                        })
+                })
             }
         }
     }
-
-    /*function loadCoursesCharts(data) {
-        let courses = crossfilter(data)
-        let all = courses.groupAll()
-
-        let primaryLanguagesChart = dc.pieChart('#primaryLanguagesChart')
-        let primaryLanguagesDimension = courses.dimension(function(d) { return d.primaryLanguages[0] })
-        let primaryLanguagesGroup = primaryLanguagesDimension.group().reduceCount()
-
-        primaryLanguagesChart
-            .width(400)
-            .height(400)
-            .radius(200)
-            .dimension(primaryLanguagesDimension)
-            .group(primaryLanguagesGroup)
-            // .innerRadius(40)
-            .transitionDuration(500)
-            .label(function(d) {
-                if (primaryLanguagesChart.hasFilter() && !primaryLanguagesChart.hasFilter(d.key)) {
-                    return `${d.key}(0%)`
-                }
-
-                var label = d.key
-                if (all.value()) {
-                    label += '(' + Math.floor(d.value/all.value() * 100) + '%)'
-                }
-                return label
-            })
-
-        let subtitleLanguagesChart = dc.pieChart('#subtitleLanguagesChart')
-        let subtitleLanguagesDimension = courses.dimension(function(d) { return d.subtitleLanguages[0] })
-        let subtitleLanguagesGroup = subtitleLanguagesDimension.group().reduceCount()
-
-        subtitleLanguagesChart
-            .width(400)
-            .height(400)
-            .radius(200)
-            .dimension(subtitleLanguagesDimension)
-            .group(subtitleLanguagesGroup)
-            // .innerRadius(40)
-            .transitionDuration(500)
-
-        dc.renderAll()
-    }*/
 </script>
 
 <style scoped>
