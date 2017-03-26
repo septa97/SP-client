@@ -110,7 +110,7 @@
                                 </p>
                                 `
 
-                                $('#${type}').append(template)
+                                $(`#${type}`).append(template)
 
                                 return
                             }
