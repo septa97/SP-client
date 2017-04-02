@@ -1,15 +1,35 @@
 <template>
-    <div id="course">
+    <div id="main">
         <h5>Overall</h5>
+        <div class="row">
+            <div class="progress" v-if="overall">
+                <div class="indeterminate"></div>
+            </div>
+        </div>
         <div id="overall">
         </div>
         <h5>Positive</h5>
+        <div class="row">
+            <div class="progress" v-if="positive">
+                <div class="indeterminate"></div>
+            </div>
+        </div>
         <div id="positive">
         </div>
         <h5>Negative</h5>
+        <div class="row">
+            <div class="progress" v-if="negative">
+                <div class="indeterminate"></div>
+            </div>
+        </div>
         <div id="negative">
         </div>
         <h5>Neutral</h5>
+        <div class="row">
+            <div class="progress" v-if="neutral">
+                <div class="indeterminate"></div>
+            </div>
+        </div>
         <div id="neutral">
     </div>
 </template>
@@ -25,13 +45,7 @@
     export default {
         data() {
             return {
-                courseId: this.$route.params.id,
-                words: {
-                    overall: [],
-                    positive: [],
-                    negative: [],
-                    neutral: []
-                },
+                courseSlug: this.$route.params.slug,
                 wordMapping: {
                     overall: {},
                     positive: {},
@@ -55,7 +69,7 @@
                                 .words(_.map(this.wordMapping[type], (v, k) => {
                                     return {
                                         text: k,
-                                        size: 10 + (10 * v)
+                                        size: 20 + (10 * Math.log(v))
                                     }
                                 }))
                                 .padding(5)
@@ -84,29 +98,29 @@
                             .attr('text-anchor', 'middle')
                             .attr('transform', d => `translate(${[d.x, d.y]})rotate(${d.rotate})`)
                             .text(d => d.text)
-
-                    this[type] = false
                 }
             },
             getAllCourseReviewPreprocessedWords() {
                 let types = ['overall', 'positive', 'negative', 'neutral']
 
-                _.each(types, type => {
+                _.forEach(types, type => {
                     const config = {
                         method: 'get',
                         baseURL: apiRoutes.rethinkdbBaseURL,
-                        url: `/course/${this.courseId}/reviews/preprocessed-words/${type}`
+                        url: `/course/${this.courseSlug}/reviews/preprocessed-words/${type}`
                     }
 
                     axios(config)
                         .then(response => {
-                            this.words[type] = response.data.words
+                            this.wordMapping[type] = response.data.word_mapping
+                            console.log(response.data.max)
+                            this[type] = false
 
-                            if (!this.words[type].length) {
+                            if (_.isEmpty(this.wordMapping[type])) {
                                 let template =
                                 `
                                 <p>
-                                There are no reviews for this course. :(
+                                There are no reviews for with this type of sentiment in this course.
                                 </p>
                                 `
 
@@ -115,7 +129,6 @@
                                 return
                             }
 
-                            this.wordMapping[type] = _.countBy(this.words[type], _.identity)
                             this.drawWordCloud(type)
                         })
                         .catch(error => {

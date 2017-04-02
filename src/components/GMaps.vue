@@ -1,6 +1,5 @@
 <template>
-    <div id="map">
-
+    <div id="main">
     </div>
 </template>
 
@@ -34,7 +33,7 @@
                     minZoom: 2
                 }
 
-                this.map = new google.maps.Map(document.getElementById('map'), mapOptions)
+                this.map = new google.maps.Map(document.getElementById('main'), mapOptions)
             },
             getAllPartnersAndLocation() {
                 const config = {
@@ -102,7 +101,7 @@
                         let template = '<ul class="collection">'
 
                         this.partnerCourses.forEach(e => {
-                            template += `<a href="#/course/${e.id}" id="e.id" class="collection-item">${e.name}</a>`
+                            template += `<a href="#/course/${e.slug}" id="e.slug" class="collection-item">${e.name}</a>`
                         })
 
                         template += '</ul>'
@@ -119,7 +118,7 @@
 </script>
 
 <style scoped>
-    #map {
+    #main {
         width: 1000px;
         height: 500px;
     }
