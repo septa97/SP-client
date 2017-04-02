@@ -1,16 +1,6 @@
 <template>
-    <div id="trainer">
-        <!-- Modal Structure -->
-        <div id="confirmModal" class="modal">
-            <div class="modal-content">
-                <h4>{{ message }}</h4>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-flat modal-action modal-close waves-effect waves-green">Ok</button>
-            </div>
-        </div>
-
-        <div class="input-field col s12">
+    <div id="main">
+        <div class="input-field col s6">
             <h5>Supervised classifier</h5>
             <form>
                 <p>
@@ -36,24 +26,49 @@
         </div>
 
         <div class="row">
-            <h6>Test Data Size: {{ testDataSize }}</h6>
-            <div class="input-field col s12">
-                <p id="test-data-size" class="range-field">
-                    <input type="range" min="10" max="90" v-model.trim.number="testDataSize" >
-                </p>
+            <div class="col s6">
+                <label for="test-data-size">Test Data Size</label>
+                <input id="test-data-size" type="range" min="10" max="90" v-model.trim.number="testDataSize">
+                <output for="test-data-size">{{ testDataSize }}%</output>
             </div>
         </div>
 
         <div class="row">
-            <div class="input-field col s6">
+            <div class="col s6">
+                <label for="min-df">Minimum Document Frequency</label>
+                <input id="min-df" type="range" min="5" max="20" v-model.trim.number="minDF">
+                <output for="min-df">{{ minDF }}</output>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="input-field col s3">
                 <button class="btn waves-effect waves-light" type="submit" @click="train">
                     Train
                 </button>
             </div>
+            <div class="input-field col s3">
+                <button class="btn waves-effect waves-light" type="submit" @click="getExistingInformations">
+                    Retrieve Existing Data
+                </button>
+            </div>
         </div>
 
-        <div class="progress" v-if="training">
-            <div class="indeterminate"></div>
+        <div class="row">
+            <div class="progress" v-if="training || retrievingExistingData">
+                <div class="indeterminate"></div>
+            </div>
+        </div>
+
+        <div id="charts">
+            <div id="performance">
+            </div>
+            <div id="confusion-matrix-LR">
+            </div>
+            <div id="confusion-matrix-SVM">
+            </div>
+            <div id="confusion-matrix-MLP">
+            </div>
         </div>
     </div>
 </template>
@@ -67,26 +82,182 @@
     export default {
         data() {
             return {
-                dataSize: '',
-                testDataSize: '20',
-                message: '',
-                classifier: 'LR',
-                training: false,
-                numOfTrainings: 0,
                 options: [
                     { text: 'Logistic Regression', value: 'LR' },
                     { text: 'Support Vector Machine', value: 'SVM' },
                     { text: 'Multi-layer Perceptron (Artifial Neural Network)', value: 'MLP' }
-                ]
+                ],
+                dataSize: 1000,
+                testDataSize: 20,
+                classifier: 'LR',
+                minDF: 5,
+                training: false,
+                retrievingExistingData: false,
+                classes: ['negative', 'neutral', 'positive'], // should be dynamic later
+                classifiers: ['Logistic Regression', 'Support Vector Machine', 'Multi-layer Perceptron'],
+                confusionMatrix: {
+                    LR: {},
+                    SVM: {},
+                    MLP: {}
+                },
+                accuracy: {
+                    LR: {},
+                    SVM: {},
+                    MLP: {}
+                },
+                size: {
+                    LR: {},
+                    SVM: {},
+                    MLP: {}
+                }
             }
         },
         mounted() {
-            $(document).ready(function() {
-                $('select').material_select()
-                $('.modal').modal()
-            })
         },
         methods: {
+            plotBarGraph() {
+                let data = []
+
+                let layout = {
+                    title: 'Performance Measures of Different Classifiers',
+                    barmode: 'group'
+                }
+
+                _.forEach(['train', 'test'], type => {
+                    const classifiers = ['LR', 'SVM', 'MLP']
+
+                    let trace = {
+                        x: this.classifiers,
+                        y: [],
+                        type: 'bar'
+                    }
+
+                    switch (type) {
+                        case 'train':   trace.name = 'Training Accuracy'
+                                        break
+                        case 'test':    trace.name = 'Testing Accuracy'
+                                        break
+                    }
+
+                    _.forEach(classifiers, c => {
+                        trace.y.push(this.accuracy[c][type] * 100)
+                    })
+
+                    data.push(trace)
+                })
+
+                Plotly.newPlot('performance', data, layout)
+            },
+            plotHeatmap(cm, type, key) {
+                let data = [
+                    {
+                        x: this.classes,
+                        y: this.classes,
+                        z: cm,
+                        type: 'heatmap'
+                    }
+                ]
+
+                let title
+                switch (key) {
+                    case 'LR':  title = `Logistic Regression Confusion Matrix of ${type} Data`
+                                break
+                    case 'SVM': title = `Support Vector Machine Confusion Matrix of ${type} Data`
+                                break
+                    case 'MLP': title = `Multi-layer Perceptron Confusion Matrix of ${type} Data`
+                                break
+                }
+
+                let layout = {
+                    title,
+                    annotations: [],
+                    xaxis: {
+                        ticks: '',
+                        side: 'top'
+                    },
+                    yaxis: {
+                        ticks: '',
+                        ticksuffix: ' ',
+                        width: 700,
+                        height: 700,
+                        autosize: false
+                    }
+                }
+
+                // Put annotations to the heatmap
+                for (let i = 0; i < this.classes.length; i++) {
+                    for (let j = 0; j < this.classes.length; j++) {
+                        let result = {
+                            xref: 'x1',
+                            yref: 'y1',
+                            x: this.classes[j],
+                            y: this.classes[i],
+                            text: cm[i][j],
+                            font: {
+                                family: 'Arial',
+                                size: 24,
+                                color: 'rgb(50, 171, 96)'
+                            },
+                            showarrow: false,
+                            font: {
+                                color: 'white'
+                            }
+                        }
+
+                        layout.annotations.push(result)
+                    }
+                }
+
+                // Add to the mainDiv
+                let mainDiv = document.getElementById(`confusion-matrix-${key}`)
+                let numOfChildren = mainDiv.children.length
+                let id = `confusion-matrix-${key}-${numOfChildren}`
+
+                $('<div>', {
+                    id
+                }).appendTo(mainDiv)
+
+                Plotly.newPlot(id, data, layout)
+            },
+            createConfusionMatrices() {
+                _.forEach(this.confusionMatrix, (value, key) => {
+                    this.plotHeatmap(value.train, 'Training', key)
+                    this.plotHeatmap(value.test, 'Testing', key)
+                })
+            },
+            saveLocally(data) {
+                const classifiers = ['LR', 'SVM', 'MLP']
+
+                _.forEach(classifiers, classifier => {
+                    this.confusionMatrix[classifier].train = data[classifier].cm_train
+                    this.confusionMatrix[classifier].test = data[classifier].cm_test
+                    this.accuracy[classifier].train = data[classifier].train_score
+                    this.accuracy[classifier].test = data[classifier].test_score
+                    this.size[classifier].train = data[classifier].train_size
+                    this.size[classifier].test = data[classifier].test_size
+                })
+
+                this.plotBarGraph()
+                this.createConfusionMatrices()
+            },
+            getExistingInformations() {
+                this.retrievingExistingData = true
+
+                const config = {
+                    method: 'get',
+                    baseURL: apiRoutes.classifierBaseURL,
+                    url: '/existing-informations'
+                }
+
+                axios(config)
+                    .then(response => {
+                        this.saveLocally(response.data)
+                        this.retrievingExistingData = false
+                    })
+                    .catch(error => {
+                        throw new Error(error)
+                    })
+            },
             train() {
                 this.training = true
 
@@ -96,8 +267,9 @@
                     url: '/train',
                     data: {
                         classifier: this.classifier,
-                        dataSize: this.dataSize/100,
-                        testDataSize: this.testDataSize
+                        minDF: this.minDF,
+                        dataSize: this.dataSize,
+                        testDataSize: this.testDataSize/100
                     },
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded'
@@ -106,10 +278,8 @@
 
                 axios(config)
                     .then(response => {
+                        this.saveLocally(response.data)
                         this.training = false
-                        this.numOfTrainings++
-                        this.message = response.data.message
-                        $('#confirmModal').modal('open')
                     })
                     .catch(error => {
                         throw new Error(error)
