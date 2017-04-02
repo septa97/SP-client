@@ -8,6 +8,7 @@
                         <li><router-link to="/gmaps">Map</router-link></li>
                         <li><router-link to="/trainer">Trainer</router-link></li>
                         <li><router-link to="/visualizer">Visualizer</router-link></li>
+                        <!-- <li><router-link to="/tsne">Realtime t-SNE</router-link></li> -->
                     </ul>
                 </div>
             </nav>
