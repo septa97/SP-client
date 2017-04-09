@@ -19,34 +19,46 @@
     <!-- Drawer -->
     <q-drawer ref="drawer">
       <div class="toolbar">
-        <q-toolbar-title>
-          Options
-        </q-toolbar-title>
+        <button class="primary" @click="$refs.configModal.open()">
+          <i class="on-left">settings</i>Configure
+        </button>
       </div>
 
-      <div class="list platform-delimiter">
-        <q-dialog-select type="radio" v-model="classifier" :options="classifierOptions" ok-label="Ok" cancel-label="Cancel" title="Choose the Supervised Classifier">
-        </q-dialog-select>
+      <!-- Modal -->
+      <q-modal ref="configModal" :content-css="{minWidth: '80vw', minHeight: '80vh'}">
+        <q-layout>
+          <div slot="header" class="toolbar">
+            <button @click="$refs.configModal.close()">
+              <i>keyboard_arrow_left</i>
+            </button>
+            <q-toolbar-title :padding="1">Configuration</q-toolbar-title>
+          </div>
 
-        <div class="stacked-label">
-          <input type="text" v-model.trim.number="dataSize">
-          <label>Data Size</label>
-        </div>
+          <div class="layout-view">
+            <div class="layout-padding">
+              <q-dialog-select type="radio" v-model="classifier" :options="classifierOptions" ok-label="Ok" cancel-label="Cancel" title="Choose the Supervised Classifier">
+              </q-dialog-select>
 
-        <q-range class="orange" :min="10" :max="90" v-model.trim.number="testDataSize" label></q-range>
+              <div class="stacked-label">
+                <input type="text" v-model.trim.number="dataSize">
+                <label>Data Size</label>
+              </div>
 
-        <q-range class="orange" :min="5" :max="20" v-model.trim.number="minDF" label></q-range>
+              <label>Minimum Document Frequency</label>
+              <q-range :min="5" :max="20" v-model.trim.number="minDF" label></q-range>
 
-        <q-progress-button class="orange" :percentage="training" @click.native="train" indeterminate dark-filler>
-          Train
-        </q-progress-button>
-        OR
-        <q-progress-button class="orange" :percentage="retrievingExistingData" @click.native="getExistingInformations" indeterminate dark-filler>
-          Get Current
-        </q-progress-button>
-      </div>
+              <q-progress-button class="primary" :percentage="training" @click.native="train" indeterminate dark-filler>
+                Train
+              </q-progress-button>
+              OR
+              <q-progress-button class="primary" :percentage="retrievingExistingData" @click.native="getExistingInformations" indeterminate dark-filler>
+                Get Current
+              </q-progress-button>
+            </div>
+          </div>
+        </q-layout>
+      </q-modal>
     </q-drawer>
-
 
     <div class="layout-view">
       <div class="list layout-padding">
