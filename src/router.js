@@ -27,14 +27,20 @@ export default new VueRouter({
     }, // Default
     {
       path: '/dimensionality-reduction',
-      component: load('DimensionalityReduction')
+      component: load('dimensionality-reduction/Layout'),
+      children: [
+        { path: 'PCA-2D', component: load('dimensionality-reduction/PCA2D') },
+        { path: 'PCA-3D', component: load('dimensionality-reduction/PCA3D') },
+        { path: 'tSNE-2D', component: load('dimensionality-reduction/tSNE2D') },
+        { path: 'tSNE-3D', component: load('dimensionality-reduction/tSNE3D') }
+      ]
     },
     {
       path: '/sentviz',
       component: load('sentviz/Layout'),
       children: [
         { path: 'gmaps', component: load('sentviz/GMaps') },
-        { path: 'course/:slug', component: load('sentviz/Course') }
+        { path: 'course/:slug', component: load('sentviz/Course'), props: true }
       ]
     },
     {

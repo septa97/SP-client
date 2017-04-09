@@ -17,7 +17,7 @@
     </div>
 
     <!-- Navigation Tabs -->
-    <q-tabs slot="navigation" v-model="currentTab" :refs="$refs">
+    <q-tabs class="justified" slot="navigation" v-model="currentTab" :refs="$refs">
       <q-tab icon="info" name="PCA-2D">PCA (2D)</q-tab>
       <q-tab icon="info" name="PCA-3D">PCA (3D)</q-tab>
       <q-tab icon="info" name="tSNE-2D">t-SNE (2D)</q-tab>
@@ -47,19 +47,19 @@
     </q-drawer>
 
     <!-- Refs -->
-    <div ref="PCA-2D">
+    <div class="layout-padding" ref="PCA-2D">
       <h5>Principal Components Analysis (2D)</h5>
       <div id="PCA-2D"></div>
     </div>
-    <div ref="PCA-3D">
+    <div class="layout-padding" ref="PCA-3D">
       <h5>Principal Components Analysis (3D)</h5>
       <div id="PCA-3D"></div>
     </div>
-    <div ref="tSNE-2D">
+    <div class="layout-padding" ref="tSNE-2D">
       <h5>t-distributed Stochastic Neighbor Embedding (2D)</h5>
       <div id="tSNE-2D"></div>
     </div>
-    <div ref="tSNE-3D">
+    <div class="layout-padding" ref="tSNE-3D">
       <h5>t-distributed Stochastic Neighbor Embedding (3D)</h5>
       <div id="tSNE-3D"></div>
     </div>
@@ -76,7 +76,7 @@
   'use strict'
 
   import { Loading } from 'quasar'
-  import apiRoutes from './../apiRoutes'
+  import apiRoutes from './../../apiRoutes'
   import async from 'async'
   import axios from 'axios'
   import _ from 'lodash'
@@ -166,5 +166,5 @@
   }
 </script>
 
-<style>
+<style scoped>
 </style>

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div id="map" ref="map" class="layout-padding">
+    <div id="map" ref="map" class="layout-padding relative-position">
       <!-- Modal -->
       <q-modal ref="coursesModal" :content-css="{minWidth: '80vw', minHeight: '80vh'}">
         <q-layout>
@@ -13,16 +13,15 @@
             </q-toolbar-title>
           </div>
 
-          <div slot="header" class="toolbar primary">
-            <q-search class="primary"></q-search>
-          </div>
-
           <div class="layout-view">
             <div class="layout-padding">
-              <h5>Courses</h5>
-              <p class="caption" v-for="course in partnerCourses">
-                <router-link :to="{ path: `course/${course.slug}`, exact: true }">{{ course.name }}</router-link>
-              </p>
+              <q-data-table :data="partnerCourses" :config="config" :columns="columns">
+                <template slot="selection" scope="props">
+                  <button class="primary clear" @click="goToCourses(props)">
+                    <i>send</i>
+                  </button>
+                </template>
+              </q-data-table>
             </div>
           </div>
         </q-layout>
@@ -39,12 +38,71 @@
 
   import { Loading } from 'quasar'
   import apiRoutes from './../../apiRoutes'
+  import router from './../../router'
   import axios from 'axios'
   import _ from 'lodash'
 
   export default {
     data () {
       return {
+        config: {
+          title: 'Courses Offered',
+          refresh: true,
+          columnPicker: true,
+          bodyStyle: {
+            maxHeight: '500px'
+          },
+          rowHeight: '50px',
+          responsive: true,
+          pagination: {
+            rowsPerPage: 15,
+            options: [5, 10, 15, 30, 50, 500]
+          },
+          selection: 'single',
+          messages: {
+            noData: '<i>warning</i> No data available to show.',
+            noDataAfterFiltering: '<i>warning</i> No results. Please refine your search terms.'
+          },
+          labels: {
+            columns: 'Columns',
+            allCols: 'Every Columns',
+            rows: 'Rows',
+            selected: {
+              singular: 'item selected.',
+              plural: 'items selected.'
+            },
+            clear: 'clear',
+            search: 'Search',
+            all: 'All'
+          }
+        },
+        columns: [
+          {
+            label: 'Course Name',
+            field: 'name',
+            filter: true,
+            sort: true,
+            width: '120px'
+          },
+          {
+            label: 'Course Slug',
+            field: 'slug',
+            filter: true,
+            sort: true,
+            width: '120px'
+          },
+          {
+            label: 'Course Type',
+            field: 'courseType',
+            filter: true,
+            sort: true,
+            width: '120px'
+          }
+        ],
+        pagination: true,
+        rowHeight: 50,
+        bodyHeightProp: 'maxHeight',
+        bodyHeight: 500,
         partnerCourses: [],
         currentInstitution: ''
       }
@@ -54,6 +112,10 @@
       this.getAllPartnersAndLocation()
     },
     methods: {
+      goToCourses (props) {
+        const slugs = _.map(props.rows, 'data.slug')
+        router.push({ path: `/sentviz/course/${slugs[0]}`, exact: true })
+      },
       initMap () {
         const mapOptions = {
           center: {
@@ -138,7 +200,6 @@
 
 <style scoped>
   #map {
-    position: relative;
     width: 100%;
     height: 100%;
   }

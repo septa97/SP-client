@@ -16,13 +16,6 @@
       </q-toolbar-title>
     </div>
 
-    <!-- Navigation Tabs -->
-    <!-- <q-tabs slot="navigation">
-      <q-tab icon="mail" route="/layout" exact replace>Mails</q-tab>
-      <q-tab icon="alarm" route="/layout/alarm" exact replace>Alarms</q-tab>
-      <q-tab icon="help" route="/layout/help" exact replace>Help</q-tab>
-    </q-tabs> -->
-
     <!-- Drawer -->
     <q-drawer ref="drawer">
       <div class="toolbar">
@@ -56,7 +49,7 @@
 
 
     <div class="layout-view">
-      <div class="list">
+      <div class="list layout-padding">
         <q-collapsible opened group="chart" icon="explore" label="Performance">
           <div id="performance">
           </div>
@@ -92,7 +85,6 @@
           </div>
         </q-collapsible>
       </div>
-
     </div>
 
     <!-- Footer -->

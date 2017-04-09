@@ -12,8 +12,8 @@
     </div>
 
     <!-- Navigation Tabs -->
-    <q-tabs slot="navigation">
-      <q-tab icon="map" route="/sentviz" exact replace>SentViz</q-tab>
+    <q-tabs class="justified" slot="navigation">
+      <q-tab icon="info" route="/sentviz" exact replace>SentViz</q-tab>
       <q-tab icon="info" route="/trainer" exact replace>Trainer</q-tab>
       <q-tab icon="info" route="/dimensionality-reduction" exact replace>Dimensionality Reduction</q-tab>
       <q-tab icon="info" route="/features" exact replace>Features</q-tab>
@@ -24,12 +24,12 @@
     <q-drawer ref="drawer">
       <div class="toolbar">
         <q-toolbar-title>
-          Drawer Title
+          Links
         </q-toolbar-title>
       </div>
 
       <div class="list no-border platform-delimiter">
-        <q-drawer-link icon="mail" :to="{path: '/', exact: true}">
+        <q-drawer-link icon="mail" :to="{ path: '/', exact: true }">
           Link
         </q-drawer-link>
       </div>
