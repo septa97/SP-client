@@ -1,19 +1,19 @@
-Coursera's MOOCs Sentiment Analysis and Visualization: Polarity Identification from Course Reviews (client)
-===========================================================================================================
+# Quasar App
 
-## prerequisites
-* npm
-* node.js (version 6.0 or higher)
+> A Quasar project
+
+## Build Setup
 
 ``` bash
-## install dependencies
-npm install
+# install dependencies
+$ npm install
 
-## serve with hot reload at localhost:8080 or localhost:8081 (if rethinkdb server is active)
-npm run dev
+# serve with hot reload at localhost:8080
+$ quasar dev
 
 # build for production with minification
-npm run build
-```
+$ quasar build
 
-For detailed explanation on how things work, consult the [docs for vue-loader](http://vuejs.github.io/vue-loader).
+# lint code
+$ quasar lint
+```
