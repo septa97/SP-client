@@ -1,19 +1,17 @@
-# Quasar App
+Coursera's MOOCs Sentiment Analysis and Visualization: Polarity Identification from Course Reviews (client)
+===========================================================================================================
 
-> A Quasar project
+## Prerequisites
+* npm
+* node.js
 
-## Build Setup
-
+## Installation
 ``` bash
-# install dependencies
-$ npm install
-
-# serve with hot reload at localhost:8080
-$ quasar dev
-
-# build for production with minification
-$ quasar build
-
-# lint code
-$ quasar lint
+sudo chown -R $(whoami) $(npm config get prefix)/{lib/node_modules,bin,share}
+npm install -g quasar-cli
+npm install
 ```
+
+## Running the application
+* `PORT=3000 quasar dev`
+* A browser window will open at `localhost:3000`
