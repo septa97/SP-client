@@ -13,5 +13,5 @@ npm install
 ```
 
 ## Running the application
-* `PORT=3000 quasar dev`
+* `quasar dev`
 * A browser window will open at `localhost:3000`
