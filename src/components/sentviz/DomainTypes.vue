@@ -1,7 +1,8 @@
 <template>
   <div>
     <div class="layout-padding">
-      <h5>{{ courseName }}</h5>
+      <h5 v-if="domainId">Domain Id: {{ domainId }}</h5>
+      <h5 v-if="subdomainId">Subomain Id: {{ subdomainId }}</h5>
       <q-dialog-select type="radio" v-model="classifier" :options="classifierOptions" ok-label="Ok" cancel-label="Cancel" title="Choose the Supervised Classifier"></q-dialog-select>
       <q-dialog-select type="radio" v-model="vocabModel" :options="vocabModelOptions" ok-label="Ok" cancel-label="Cancel" title="Choose the Vocabulary Model"></q-dialog-select>
 
@@ -108,8 +109,9 @@
         rowHeight: 50,
         bodyHeightProp: 'maxHeight',
         bodyHeight: 500,
-        courseSlug: this.$route.params.slug,
-        courseName: '',
+        domainId: this.$route.params.domainId,
+        subdomainId: this.$route.params.subdomainId,
+        both: 'True',
         classifier: 'LR',
         vocabModel: 'unigram',
         tfIdf: false,
@@ -161,6 +163,8 @@
             for (let i = 0; i < this.table.length; i++) {
               this.table[i].predictedLabel = predictedLabels[i]
             }
+
+            console.log(predictedLabels)
 
             let data = []
             let layout = {
@@ -217,10 +221,11 @@
           spinnerSize: 150
         })
 
+        if (this.domainId === '' || this.subdomainId === '') this.both = 'False'
         const config = {
           method: 'get',
           baseURL: apiRoutes.rethinkdbBaseURL,
-          url: `/course/${this.courseSlug}/reviews-and-ratings`
+          url: `/courses/domain_id_and_or_subdomain_id/${this.domainId}/${this.subdomainId}/${this.both}/reviews-and-ratings`
         }
 
         axios(config)
@@ -236,7 +241,7 @@
 
               return e
             })
-            this.courseName = response.data.course_name
+
             Loading.hide()
           })
           .catch(error => {

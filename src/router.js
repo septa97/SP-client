@@ -40,12 +40,16 @@ export default new VueRouter({
       component: load('sentviz/Layout'),
       children: [
         { path: 'gmaps', component: load('sentviz/GMaps') },
-        { path: 'course/:slug', component: load('sentviz/Course'), props: true }
+        { path: 'course/:slug', component: load('sentviz/Course') },
+        { path: 'domain-types/:domainId/:subdomainId', component: load('sentviz/DomainTypes') }
       ]
     },
     {
       path: '/trainer',
-      component: load('Trainer')
+      component: load('trainer/Layout'),
+      children: [
+        { path: 'confusion-matrices', component: load('trainer/ConfusionMatrices') }
+      ]
     },
     {
       path: '*',

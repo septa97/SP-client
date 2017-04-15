@@ -17,7 +17,7 @@
             <div class="layout-padding">
               <q-data-table :data="partnerCourses" :config="config" :columns="columns">
                 <template slot="selection" scope="props">
-                  <button class="primary clear" @click="goToCourses(props)">
+                  <button class="primary clear" @click="goToCourse(props)">
                     <i>send</i>
                   </button>
                 </template>
@@ -112,7 +112,7 @@
       this.getAllPartnersAndLocation()
     },
     methods: {
-      goToCourses (props) {
+      goToCourse (props) {
         const slugs = _.map(props.rows, 'data.slug')
         router.push({ path: `/sentviz/course/${slugs[0]}`, exact: true })
       },
