@@ -12,7 +12,33 @@
 
       <q-progress-button class="primary" :percentage="classifying" @click.native="classifyReviews" indeterminate dark-filler>Predict Labels</q-progress-button>
 
-      <q-data-table :data="table" :config="config" :columns="columns"></q-data-table>
+      <q-data-table :data="table" :config="config" :columns="columns">
+        <template slot="selection" scope="props">
+          <button class="primary clear" @click="explainPrediction(props)">
+            Explain Prediction
+          </button>
+        </template>
+      </q-data-table>
+
+      <!-- Modal -->
+      <q-modal class="maximized" ref="predictionExplanationModal" :content-css="{minWidth: '80vw', minHeight: '80vh'}">
+        <q-layout>
+          <div slot="header" class="toolbar">
+            <button @click="$refs.predictionExplanationModal.close()">
+              <i>keyboard_arrow_left</i>
+            </button>
+            <q-toolbar-title :padding="1">
+              Prediction Explanation
+            </q-toolbar-title>
+          </div>
+
+          <div class="layout-view">
+            <div class="layout-padding">
+              <div id="prediction-explanation"></div>
+            </div>
+          </div>
+        </q-layout>
+      </q-modal>
 
       <div id="pie-chart">
       </div>
@@ -30,6 +56,7 @@
   import apiRoutes from './../../apiRoutes'
   import axios from 'axios'
   import _ from 'lodash'
+  import $ from 'jquery'
 
   export default {
     data () {
@@ -57,6 +84,7 @@
             rowsPerPage: 15,
             options: [5, 10, 15, 30, 50, 500]
           },
+          selection: 'single',
           messages: {
             noData: '<i>warning</i> No data available to show.',
             noDataAfterFiltering: '<i>warning</i> No results. Please refine your search terms.'
@@ -121,6 +149,38 @@
       this.getAllCourseReviews()
     },
     methods: {
+      explainPrediction (props) {
+        Loading.show({
+          delay: 100,
+          message: 'Retrieving explanation for a specific course review...',
+          spinner: 'dots',
+          spinnerSize: 150
+        })
+
+        const config = {
+          method: 'post',
+          baseURL: apiRoutes.classifierBaseURL,
+          url: '/explain/prediction',
+          data: {
+            review: props.rows[0].data.review
+          },
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
+        }
+
+        axios(config)
+          .then(response => {
+            $('#prediction-explanation').empty()
+            $('#prediction-explanation').append(response.data.div)
+            Loading.hide()
+            this.$refs.predictionExplanationModal.open()
+          })
+          .catch(error => {
+            Loading.hide()
+            throw new Error(error)
+          })
+      },
       classifyReviews () {
         this.classifying = 1
         Loading.show({
@@ -139,7 +199,23 @@
             vocabModel: this.vocabModel,
             tfIdf: this.tfIdf,
             reviews: _.map(this.table, 'review'),
-            ratings: _.map(this.table, 'rating')
+            ratings: _.map(this.table, e => {
+              /**
+               *  Mapping in the classifier
+               *  0 - Negative
+               *  1 - Neutral
+               *  2 - Positive
+               *  3 - Very Negative
+               *  4 - Very Positive
+               */
+              switch (e.rating) {
+                case 2: return 0
+                case 3: return 1
+                case 4: return 2
+                case 1: return 3
+                case 5: return 4
+              }
+            })
           },
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -149,12 +225,20 @@
         axios(config)
           .then(response => {
             const predictedLabels = _.map(response.data.predicted_label, e => {
+              /**
+               *  Mapping in the classifier
+               *  0 - Negative
+               *  1 - Neutral
+               *  2 - Positive
+               *  3 - Very Negative
+               *  4 - Very Positive
+               */
               switch (e) {
-                case 5: return 'Very Positive'
-                case 4: return 'Positive'
-                case 3: return 'Neutral'
-                case 2: return 'Negative'
-                case 1: return 'Very Negative'
+                case 0: return 'Negative'
+                case 1: return 'Neutral'
+                case 2: return 'Positive'
+                case 3: return 'Very Negative'
+                case 4: return 'Very Positive'
               }
             })
 
@@ -164,7 +248,7 @@
 
             let data = []
             let layout = {
-              title: 'Actual and Predicted Labels',
+              title: `Actual and Predicted Labels (${(response.data.accuracy * 100).toFixed(2)}% Accuracy)`,
               annotations: [],
               height: 600,
               width: 600

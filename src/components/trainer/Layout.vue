@@ -10,6 +10,10 @@
       <q-toolbar-title :padding="1">
         Trainer
       </q-toolbar-title>
+
+      <button @click="explainWeights">
+        <i class="on-left">explore</i>Explain Weights
+      </button>
     </div>
 
     <!-- Navigation Tabs -->
@@ -18,6 +22,26 @@
       <q-tab name="confusion-matrices">Confusion Matrices</q-tab>
       <q-tab name="features" @selected="getAllVocab">Features</q-tab>
     </q-tabs>
+
+    <!-- Modal -->
+    <q-modal class="maximized" ref="weightsExplanationModal" :content-css="{minWidth: '80vw', minHeight: '80vh'}">
+      <q-layout>
+        <div slot="header" class="toolbar">
+          <button @click="$refs.weightsExplanationModal.close()">
+            <i>keyboard_arrow_left</i>
+          </button>
+          <q-toolbar-title :padding="1">
+            Weights Explanation
+          </q-toolbar-title>
+        </div>
+
+        <div class="layout-view">
+          <div class="layout-padding">
+            <div id="weights-explanation"></div>
+          </div>
+        </div>
+      </q-layout>
+    </q-modal>
 
     <!-- Refs -->
     <!-- Training -->
@@ -452,6 +476,7 @@
   import apiRoutes from './../../apiRoutes'
   import axios from 'axios'
   import _ from 'lodash'
+  import $ from 'jquery'
 
   export default {
     data () {
@@ -544,7 +569,40 @@
       }
     },
     methods: {
+      explainWeights () {
+        Loading.show({
+          delay: 100,
+          message: 'Retrieving explanation for the weights of the model...',
+          spinner: 'dots',
+          spinnerSize: 150
+        })
+
+        const config = {
+          method: 'get',
+          baseURL: apiRoutes.classifierBaseURL,
+          url: '/explain/weights'
+        }
+
+        axios(config)
+          .then(response => {
+            $('#weights-explanation').empty()
+            $('#weights-explanation').append(response.data.div)
+            Loading.hide()
+            this.$refs.weightsExplanationModal.open()
+          })
+          .catch(error => {
+            Loading.hide()
+            throw new Error(error)
+          })
+      },
       getAllVocab () {
+        Loading.show({
+          delay: 100,
+          message: 'Retrieving all the vocabularies...',
+          spinner: 'dots',
+          spinnerSize: 150
+        })
+
         const config = {
           method: 'get',
           baseURL: apiRoutes.featuresBaseURL,
@@ -564,6 +622,8 @@
                 trigram: response.data[2].data[i]
               })
             }
+
+            Loading.hide()
           })
           .catch(error => {
             throw new Error(error)

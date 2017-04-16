@@ -11,7 +11,6 @@
       <q-tab route="/sentviz" exact replace>SentViz</q-tab>
       <q-tab route="/trainer" exact replace>Trainer</q-tab>
       <q-tab route="/dimensionality-reduction" exact replace>Dimensionality Reduction</q-tab>
-      <q-tab route="/features" exact replace>Features</q-tab>
       <q-tab route="/scraper" exact replace>Scraper</q-tab>
     </q-tabs>
 

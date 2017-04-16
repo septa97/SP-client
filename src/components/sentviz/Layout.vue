@@ -58,7 +58,7 @@
             <q-data-table :data="courses" :config="config" :columns="columns">
               <template slot="selection" scope="props">
                 <button class="primary clear" @click="goToCourse(props)">
-                  <i>send</i>
+                  Go To Course
                 </button>
               </template>
             </q-data-table>
@@ -68,7 +68,7 @@
     </q-modal>
 
     <!-- Domain Types Modal -->
-    <q-modal ref="domainTypesModal" :content-css="{minWidth: '80vw', minHeight: '80vh'}">
+    <q-modal class="minimized" ref="domainTypesModal" :content-css="{minWidth: '40vw', minHeight: '40vh'}">
       <q-layout>
         <div slot="header" class="toolbar">
           <button @click="$refs.domainTypesModal.close()">
@@ -85,8 +85,8 @@
             </q-dialog-select>
             <q-dialog-select type="radio" v-model="subdomainId" :options="subdomainIds" ok-label="Ok" cancel-label="Cancel" title="Choose the Subdomain Id">
             </q-dialog-select>
-            <button class="primary clear" @click="goToDomainTypes">
-              <i>send</i>
+            <button class="primary" @click="goToDomainTypes">
+              Get Course Reviews
             </button>
           </div>
         </div>
