@@ -598,15 +598,15 @@
       getAllVocab () {
         Loading.show({
           delay: 100,
-          message: 'Retrieving all the vocabularies...',
+          message: 'Retrieving all the features...',
           spinner: 'dots',
           spinnerSize: 150
         })
 
         const config = {
           method: 'get',
-          baseURL: apiRoutes.featuresBaseURL,
-          url: '/all'
+          baseURL: apiRoutes.rethinkdbBaseURL,
+          url: '/features'
         }
 
         axios(config)
