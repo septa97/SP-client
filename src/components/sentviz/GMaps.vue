@@ -18,7 +18,7 @@
               <q-data-table :data="partnerCourses" :config="config" :columns="columns">
                 <template slot="selection" scope="props">
                   <button class="primary clear" @click="goToCourse(props)">
-                    <i>send</i>
+                    Go To Course
                   </button>
                 </template>
               </q-data-table>
