@@ -11,6 +11,9 @@
         Trainer
       </q-toolbar-title>
 
+      <button @click="viewWordClouds">
+        <i class="on-left">info</i>View Word Clouds
+      </button>
       <button @click="explainWeights">
         <i class="on-left">explore</i>Explain Weights
       </button>
@@ -23,7 +26,7 @@
       <q-tab name="features" @selected="getAllVocab">Features</q-tab>
     </q-tabs>
 
-    <!-- Modal -->
+    <!-- Weights Explanation Modal -->
     <q-modal class="maximized" ref="weightsExplanationModal" :content-css="{minWidth: '80vw', minHeight: '80vh'}">
       <q-layout>
         <div slot="header" class="toolbar">
@@ -38,6 +41,54 @@
         <div class="layout-view">
           <div class="layout-padding">
             <div id="weights-explanation"></div>
+          </div>
+        </div>
+      </q-layout>
+    </q-modal>
+
+    <!-- Word Cloud Modal -->
+    <q-modal ref="wordcloudModal" :content-css="{minWidth: '80vw', minHeight: '80vh'}">
+      <q-layout>
+        <div slot="header" class="toolbar">
+          <button @click="$refs.wordcloudModal.close()">
+            <i>keyboard_arrow_left</i>
+          </button>
+          <q-toolbar-title :padding="1">
+            Word Cloud
+          </q-toolbar-title>
+        </div>
+
+        <div class="layout-view">
+          <div class="layout-padding">
+            <div>
+              <h5>Overall</h5>
+              <canvas id="overall" width="600" height="400"></canvas>
+            </div>
+
+            <div>
+              <h5>Very Positive</h5>
+              <canvas id="very-positive" width="600" height="400"></canvas>
+            </div>
+
+            <div>
+              <h5>Positive</h5>
+              <canvas id="positive" width="600" height="400"></canvas>
+            </div>
+
+            <div>
+              <h5>Neutral</h5>
+              <canvas id="neutral" width="600" height="400"></canvas>
+            </div>
+
+            <div>
+              <h5>Negative</h5>
+              <canvas id="negative" width="600" height="400"></canvas>
+            </div>
+
+            <div>
+              <h5>Very Negative</h5>
+              <canvas id="very-negative" width="600" height="400"></canvas>
+            </div>
           </div>
         </div>
       </q-layout>
@@ -475,6 +526,7 @@
   import { Loading } from 'quasar'
   import apiRoutes from './../../apiRoutes'
   import axios from 'axios'
+  import WordCloud from 'wordcloud'
   import _ from 'lodash'
   import $ from 'jquery'
 
@@ -569,6 +621,49 @@
       }
     },
     methods: {
+      viewWordClouds () {
+        Loading.show({
+          delay: 100,
+          message: 'Retrieving words for word cloud visualization...',
+          spinner: 'dots',
+          spinnerSize: 150
+        })
+
+        const config = {
+          method: 'get',
+          baseURL: apiRoutes.rethinkdbBaseURL,
+          url: '/wordclouds'
+        }
+
+        axios(config)
+          .then(response => {
+            _.forEach(response.data, (v, k) => {
+              let list = []
+
+              for (let key of Object.keys(v)) {
+                if (v.hasOwnProperty(key)) {
+                  list.push([key, v[key]])
+                }
+              }
+
+              switch (k) {
+                case 'overall': WordCloud(document.getElementById('overall'), { list }); break
+                case 'very_positive': WordCloud(document.getElementById('very-positive'), { list }); break
+                case 'positive': WordCloud(document.getElementById('positive'), { list }); break
+                case 'neutral': WordCloud(document.getElementById('neutral'), { list }); break
+                case 'negative': WordCloud(document.getElementById('negative'), { list }); break
+                case 'very_negative': WordCloud(document.getElementById('very-negative'), { list }); break
+              }
+            })
+
+            Loading.hide()
+            this.$refs.wordcloudModal.open()
+          })
+          .catch(error => {
+            Loading.hide()
+            throw new Error(error)
+          })
+      },
       explainWeights () {
         Loading.show({
           delay: 100,
@@ -578,9 +673,18 @@
         })
 
         const config = {
-          method: 'get',
+          method: 'post',
           baseURL: apiRoutes.classifierBaseURL,
-          url: '/explain/weights'
+          url: '/explain/weights',
+          data: {
+            classifier: this.classifier,
+            vocabModel: this.vocabModel,
+            tfIdf: this.tfIdf,
+            corrected: this.corrected
+          },
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
         }
 
         axios(config)
