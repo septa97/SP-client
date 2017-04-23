@@ -162,6 +162,9 @@
           baseURL: apiRoutes.classifierBaseURL,
           url: '/explain/prediction',
           data: {
+            classifier: this.classifier,
+            vocabModel: this.vocabModel,
+            tfIdf: this.tfIdf,
             review: props.rows[0].data.review
           },
           headers: {

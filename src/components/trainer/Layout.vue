@@ -14,7 +14,7 @@
       <button @click="viewWordClouds">
         <i class="on-left">info</i>View Word Clouds
       </button>
-      <button @click="explainWeights">
+      <button @click="$refs.optionsModal.open()">
         <i class="on-left">explore</i>Explain Weights
       </button>
     </div>
@@ -25,6 +25,43 @@
       <q-tab name="confusion-matrices">Confusion Matrices</q-tab>
       <q-tab name="features" @selected="getAllVocab">Features</q-tab>
     </q-tabs>
+
+    <!-- Weights Explanation Options Modal -->
+    <q-modal class="minimized" ref="optionsModal" :content-css="{minWidth: '40vw', minHeight: '40vh'}">
+      <q-layout>
+        <div slot="header" class="toolbar">
+          <button @click="$refs.optionsModal.close()">
+            <i>keyboard_arrow_left</i>
+          </button>
+          <q-toolbar-title :padding="1">
+            Weights Explanation Options
+          </q-toolbar-title>
+        </div>
+
+        <div class="layout-view">
+          <div class="layout-padding">
+            <q-dialog-select type="radio" v-model="classifier" :options="classifierOptions" ok-label="Ok" cancel-label="Cancel" title="Choose the Supervised Classifier"></q-dialog-select>
+            <q-dialog-select type="radio" v-model="vocabModel" :options="vocabModelOptions" ok-label="Ok" cancel-label="Cancel" title="Choose the Vocabulary Model"></q-dialog-select>
+
+            <div class="row">
+              <label>
+                <q-checkbox v-model="tfIdf"></q-checkbox>
+                tf-idf
+              </label>
+
+              <label>
+                <q-checkbox v-model="corrected"></q-checkbox>
+                Spell corrected
+              </label>
+            </div>
+
+            <button class="primary" @click="explainWeights">
+              Explain Weights
+            </button>
+          </div>
+        </div>
+      </q-layout>
+    </q-modal>
 
     <!-- Weights Explanation Modal -->
     <q-modal class="maximized" ref="weightsExplanationModal" :content-css="{minWidth: '80vw', minHeight: '80vh'}">
@@ -122,9 +159,9 @@
             <q-dialog-select type="radio" v-model.trim.number="dataSize" :options="dataSizeOptions" ok-label="Ok" cancel-label="Cancel" title="Choose the Data Size">
             </q-dialog-select>
 
-            <hr>
+            <!-- <hr>
             <label>Minimum Document Frequency</label>
-            <q-range :min="5" :max="100" v-model.trim.number="minDF" labelAlways></q-range>
+            <q-range :min="5" :max="100" v-model.trim.number="minDF" labelAlways></q-range> -->
 
             <q-progress-button class="primary" :percentage="training" @click.native="train" indeterminate dark-filler>
               Train
@@ -545,11 +582,11 @@
         ],
         dataSizeOptions: [
           { label: '1000', value: 1000 },
-          { label: '2000', value: 2000 },
           { label: '5000', value: 5000 },
           { label: '10000', value: 10000 },
-          { label: '15000', value: 15000 },
           { label: '20000', value: 20000 },
+          { label: '30000', value: 30000 },
+          { label: '40000', value: 40000 },
           { label: 'All Data', value: -1 }
         ],
         config: {
@@ -646,13 +683,21 @@
                 }
               }
 
+              let options = {
+                list,
+                weightFactor: size => {
+                  let logSize = Math.log(size)
+                  Math.pow(logSize, 2.3) + (logSize * 10)
+                }
+              }
+
               switch (k) {
-                case 'overall': WordCloud(document.getElementById('overall'), { list }); break
-                case 'very_positive': WordCloud(document.getElementById('very-positive'), { list }); break
-                case 'positive': WordCloud(document.getElementById('positive'), { list }); break
-                case 'neutral': WordCloud(document.getElementById('neutral'), { list }); break
-                case 'negative': WordCloud(document.getElementById('negative'), { list }); break
-                case 'very_negative': WordCloud(document.getElementById('very-negative'), { list }); break
+                case 'overall': WordCloud(document.getElementById('overall'), options); break
+                case 'very_positive': WordCloud(document.getElementById('very-positive'), options); break
+                case 'positive': WordCloud(document.getElementById('positive'), options); break
+                case 'neutral': WordCloud(document.getElementById('neutral'), options); break
+                case 'negative': WordCloud(document.getElementById('negative'), options); break
+                case 'very_negative': WordCloud(document.getElementById('very-negative'), options); break
               }
             })
 
@@ -751,7 +796,6 @@
           url: '/train',
           data: {
             classifier: this.classifier,
-            minDF: this.minDF,
             dataSize: this.dataSize,
             vocabModel: this.vocabModel,
             tfIdf: this.tfIdf,
