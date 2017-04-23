@@ -678,16 +678,18 @@
               let list = []
 
               for (let key of Object.keys(v)) {
-                if (v.hasOwnProperty(key)) {
+                if (v.hasOwnProperty(key) && isNaN(parseInt(key))) {
                   list.push([key, v[key]])
                 }
               }
 
+              list = _.sortBy(list, [o => o[1]]).reverse()
+
               let options = {
                 list,
-                weightFactor: size => {
+                weightFactor (size) {
                   let logSize = Math.log(size)
-                  Math.pow(logSize, 2.3) + (logSize * 10)
+                  return Math.pow(logSize, 2.3) / 2 + (logSize * 10)
                 }
               }
 
@@ -884,17 +886,19 @@
                 }
 
                 _.forEach(classifiers, (clf, k) => {
-                  let trace = {
-                    x: [],
-                    y: [],
-                    type: 'scatter',
-                    name: this.classifiers[k]
+                  if (curr[clf].length) {
+                    let trace = {
+                      x: [],
+                      y: [],
+                      type: 'scatter',
+                      name: this.classifiers[k]
+                    }
+
+                    trace.x = _.map(_.sortBy(curr[clf], ['data_size']), 'data_size')
+                    trace.y = _.map(_.sortBy(curr[clf], ['data_size']), type)
+
+                    data.push(trace)
                   }
-
-                  trace.x = _.map(_.sortBy(curr[clf], ['data_size']), 'data_size')
-                  trace.y = _.map(_.sortBy(curr[clf], ['data_size']), type)
-
-                  data.push(trace)
                 })
 
                 Plotly.newPlot(div, data, layout)
@@ -936,7 +940,9 @@
                 }
 
                 for (let clf of classifiers) {
-                  trace.y.push(_.maxBy(curr[clf], 'data_size')[type])
+                  if (curr[clf].length) {
+                    trace.y.push(_.maxBy(curr[clf], 'data_size')[type])
+                  }
                 }
 
                 data.push(trace)
@@ -959,8 +965,10 @@
               let curr = _.find(this.performance, { vocab_model: v, tf_idf: t, corrected: c })
 
               for (let clf of classifiers) {
-                this.plotHeatmap(_.maxBy(curr[clf], 'data_size').cm_train, 'Training', clf, v, t, c)
-                this.plotHeatmap(_.maxBy(curr[clf], 'data_size').cm_test, 'Testing', clf, v, t, c)
+                if (curr[clf].length) {
+                  this.plotHeatmap(_.maxBy(curr[clf], 'data_size').cm_train, 'Training', clf, v, t, c)
+                  this.plotHeatmap(_.maxBy(curr[clf], 'data_size').cm_test, 'Testing', clf, v, t, c)
+                }
               }
             }
           }
@@ -969,7 +977,7 @@
       plotHeatmap (cm, type, key, v, t, c) {
         let data = [
           {
-            x: this.classes,
+            x: this.classes.slice(0).reverse(),
             y: this.classes,
             z: cm,
             type: 'heatmap'
