@@ -20,7 +20,7 @@
         </template>
       </q-data-table>
 
-      <!-- Modal -->
+      <!-- Prediction Explanation Modal -->
       <q-modal class="maximized" ref="predictionExplanationModal" :content-css="{minWidth: '80vw', minHeight: '80vh'}">
         <q-layout>
           <div slot="header" class="toolbar">
@@ -28,13 +28,89 @@
               <i>keyboard_arrow_left</i>
             </button>
             <q-toolbar-title :padding="1">
-              Prediction Explanation
+              Prediction Explanation ({{ classifier === 'LR' ? 'White-Box Classifier' : 'Black-Box Classifier'}})
             </q-toolbar-title>
+
+            <button v-show="classifier === 'SVM' || classifier === 'MLP'" @click="$refs.shouldITrustThisModal.open()">
+              <i class="on-left">explore</i>Should I trust this?
+            </button>
           </div>
 
           <div class="layout-view">
             <div class="layout-padding">
               <div id="prediction-explanation"></div>
+            </div>
+          </div>
+        </q-layout>
+      </q-modal>
+
+      <!-- Should I Trust This? Modal -->
+      <q-modal class="maximized" ref="shouldITrustThisModal" :content-css="{minWidth: '80vw', minHeight: '80vh'}">
+        <q-layout>
+          <div slot="header" class="toolbar">
+            <button @click="$refs.shouldITrustThisModal.close()">
+              <i>keyboard_arrow_left</i>
+            </button>
+            <q-toolbar-title :padding="1">
+              Should I Trust This?
+            </q-toolbar-title>
+          </div>
+
+          <div class="layout-view">
+            <div class="layout-padding">
+              <div v-if="originalText">
+                <h5>Metrics</h5>
+                <p><b>Mean Kullback-Leibler Divergence</b>: {{ metrics.mean_KL_divergence.toFixed(4) }}</p>
+                <p><b>Score</b>: {{ metrics.score.toFixed(4) }}</p>
+
+                <table class="q-table responsive">
+                  <thead>
+                    <tr>
+                      <th>Original Text</th>
+                      <th>negative</th>
+                      <th>neutral</th>
+                      <th>positive</th>
+                      <th>very_negative</th>
+                      <th>very_positive</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    <tr>
+                      <td data-th="Original Text">{{ originalText }}</td>
+                      <td data-th="negative">{{ probabilities.negative.toFixed(4) }}</td>
+                      <td data-th="neutral">{{ probabilities.neutral.toFixed(4) }}</td>
+                      <td data-th="positive">{{ probabilities.positive.toFixed(4) }}</td>
+                      <td data-th="very_negative">{{ probabilities.very_negative.toFixed(4) }}</td>
+                      <td data-th="very_positive">{{ probabilities.very_positive.toFixed(4) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <table class="q-table responsive">
+                  <thead>
+                    <tr>
+                      <th>Distorted Text</th>
+                      <th>negative</th>
+                      <th>neutral</th>
+                      <th>positive</th>
+                      <th>very_negative</th>
+                      <th>very_positive</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    <tr v-for="e in distortedTexts">
+                      <td data-th="Distorted Text">{{ e.text }}</td>
+                      <td data-th="negative">{{ e.negative.toFixed(4) }}</td>
+                      <td data-th="neutral">{{ e.neutral.toFixed(4) }}</td>
+                      <td data-th="positive">{{ e.positive.toFixed(4) }}</td>
+                      <td data-th="very_negative">{{ e.very_negative.toFixed(4) }}</td>
+                      <td data-th="very_positive">{{ e.very_positive.toFixed(4) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </q-layout>
@@ -142,7 +218,11 @@
         vocabModel: 'unigram',
         tfIdf: false,
         classifying: 0,
-        table: []
+        table: [],
+        originalText: undefined,
+        probabilities: {},
+        distortedTexts: [],
+        metrics: {}
       }
     },
     mounted () {
@@ -176,6 +256,10 @@
           .then(response => {
             $('#prediction-explanation').empty()
             $('#prediction-explanation').append(response.data.div)
+            this.originalText = response.data.original_text
+            this.probabilities = response.data.probabilities
+            this.distortedTexts = response.data.distorted_texts
+            this.metrics = response.data.metrics
             Loading.hide()
             this.$refs.predictionExplanationModal.open()
           })
