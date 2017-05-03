@@ -40,7 +40,7 @@
 
         <div class="layout-view">
           <div class="layout-padding">
-            <q-dialog-select type="radio" v-model="classifier" :options="classifierOptions" ok-label="Ok" cancel-label="Cancel" title="Choose the Supervised Classifier"></q-dialog-select>
+            <q-dialog-select type="radio" v-model="classifier" :options="weightsExplanationOptions" ok-label="Ok" cancel-label="Cancel" title="Choose the Supervised Classifier"></q-dialog-select>
             <q-dialog-select type="radio" v-model="vocabModel" :options="vocabModelOptions" ok-label="Ok" cancel-label="Cancel" title="Choose the Vocabulary Model"></q-dialog-select>
 
             <div class="row">
@@ -575,6 +575,9 @@
           { label: 'Support Vector Machine', value: 'SVM' },
           { label: 'Multi-layer Perceptron (Artifial Neural Network)', value: 'MLP' }
         ],
+        weightsExplanationOptions: [
+          { label: 'Logistic Regression', value: 'LR' }
+        ],
         vocabModelOptions: [
           { label: 'unigram', value: 'unigram' },
           { label: 'bigram', value: 'bigram' },
@@ -637,6 +640,27 @@
           {
             label: 'Trigram',
             field: 'trigram',
+            filter: true,
+            sort: true,
+            width: '200px'
+          },
+          {
+            label: 'Unigram (with tf-idf)',
+            field: 'unigram_tfidf',
+            filter: true,
+            sort: true,
+            width: '200px'
+          },
+          {
+            label: 'Bigram (with tf-idf)',
+            field: 'bigram_tfidf',
+            filter: true,
+            sort: true,
+            width: '200px'
+          },
+          {
+            label: 'Trigram (with tf-idf)',
+            field: 'trigram_tfidf',
             filter: true,
             sort: true,
             width: '200px'
@@ -770,7 +794,10 @@
               this.features.push({
                 unigram: response.data[0].data[i],
                 bigram: response.data[1].data[i],
-                trigram: response.data[2].data[i]
+                trigram: response.data[2].data[i],
+                unigram_tfidf: response.data[3].data[i],
+                bigram_tfidf: response.data[4].data[i],
+                trigram_tfidf: response.data[5].data[i]
               })
             }
 
