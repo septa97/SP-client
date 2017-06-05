@@ -136,6 +136,11 @@
           axios(config)
             .then(response => {
               let data = []
+              let layout = {
+                autosize: false,
+                width: 1000,
+                height: 600
+              }
 
               _.forEach(this.types, type => {
                 let trace = {}
@@ -166,7 +171,7 @@
                 case `/tSNE/${this.minDF}/${this.dataSize}/3`: div = 'tSNE-3D'; break
               }
 
-              Plotly.newPlot(div, data)
+              Plotly.newPlot(div, data, layout)
               callback()
             })
             .catch(error => {
@@ -178,6 +183,7 @@
             throw new Error(error)
           }
 
+          Loading.hide()
           this.$refs.visualizeModal.close()
           this.currentTab = 'PCA-2D'
           this.retrievingData = 100

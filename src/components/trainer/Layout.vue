@@ -792,11 +792,11 @@
 
             for (let i = 0; i < maxLength; i++) {
               this.features.push({
-                unigram: response.data[0].data[i],
-                bigram: response.data[1].data[i],
+                bigram: response.data[0].data[i],
+                bigram_tfidf: response.data[1].data[i],
                 trigram: response.data[2].data[i],
-                unigram_tfidf: response.data[3].data[i],
-                bigram_tfidf: response.data[4].data[i],
+                unigram: response.data[3].data[i],
+                unigram_tfidf: response.data[4].data[i],
                 trigram_tfidf: response.data[5].data[i]
               })
             }
@@ -1004,7 +1004,7 @@
       plotHeatmap (cm, type, key, v, t, c) {
         let data = [
           {
-            x: this.classes.slice(0).reverse(),
+            x: this.classes,
             y: this.classes,
             z: cm,
             type: 'heatmap'
