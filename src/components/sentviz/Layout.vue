@@ -25,7 +25,7 @@
     </div>
 
     <!-- Drawer -->
-    <q-drawer ref="drawer">
+    <!-- <q-drawer ref="drawer">
       <div class="toolbar">
         <q-toolbar-title>
           Links
@@ -37,7 +37,7 @@
           GMaps
         </q-drawer-link>
       </div>
-    </q-drawer>
+    </q-drawer> -->
 
     <router-view class="layout-view"></router-view>
 
