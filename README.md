@@ -1,5 +1,5 @@
-Coursera's MOOCs Sentiment Analysis and Visualization: Polarity Identification from Course Reviews (client)
-===========================================================================================================
+Coursera's MOOCs Sentiment Analysis: Dimensionality Reduction Visualization and Model Prediction Explanation (client)
+=====================================================================================================================
 
 ## Prerequisites
 * npm
